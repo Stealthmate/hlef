@@ -1,0 +1,7 @@
+-   id: hlef
+    name: hledger formatter
+    description: Formates hledger files
+    entry: hlef
+    language: rust
+    types: [text]
+    files: /.*\.journal/
