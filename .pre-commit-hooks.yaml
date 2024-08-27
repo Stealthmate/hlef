@@ -4,4 +4,4 @@
     entry: hlef
     language: rust
     types: [text]
-    files: /.*\.journal/
+    files: .*\.journal
