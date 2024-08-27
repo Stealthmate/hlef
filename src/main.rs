@@ -4,7 +4,7 @@ use clap::Parser;
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
-    #[clap(long, num_args = 1..)]
+    #[clap(num_args = 1..)]
     pub files: Vec<String>,
 }
 
