@@ -1,3 +1,5 @@
+const POSTING_PARSE_REGEX: &str = r"^   *([^ ]+)( +((\= )?[^ ]+)? +([^ ]+).*)? *$";
+
 fn format_line(line: &str) -> String {
     if !line.starts_with("  ") {
         return line.to_owned();
@@ -12,7 +14,7 @@ fn format_line(line: &str) -> String {
         _ => {}
     };
 
-    let re = regex::Regex::new(r"^   *([^ ]+)( +((\= )?[^ ]+)? +([^ ]+).*)?$").unwrap();
+    let re = regex::Regex::new(POSTING_PARSE_REGEX).unwrap();
     let Some(results) = re.captures(line) else {
         panic!("Could not parse posting: {line}")
     };
@@ -54,5 +56,26 @@ pub fn format_file(filepath: &str) {
         for line in &buffer {
             file.write_all(format!("{line}\n").as_bytes()).unwrap();
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_it_strips_leading_space_from_posting_line() {
+        assert_eq!(
+            "  asset:foobar",
+            format_line("          asset:foobar")
+        )
+    }
+
+    #[test]
+    fn test_it_strips_trailing_space_from_posting_line() {
+        assert_eq!(
+            "  asset:foobar",
+            format_line("  asset:foobar  ")
+        )
     }
 }
