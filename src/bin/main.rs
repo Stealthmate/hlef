@@ -9,9 +9,9 @@ struct Args {
 }
 
 fn main() {
+    use rayon::prelude::*;
+
     let args = Args::parse();
 
-    for file in &args.files {
-        hlef::format_file(file)
-    }
+    args.files.par_iter().for_each(|x| hlef::format_file(x));
 }
