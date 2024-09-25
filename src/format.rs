@@ -10,9 +10,7 @@ pub fn format_line(line: &LedgerLine) -> String {
             formatted += &format!("{: <70}", posting.account);
 
             let mut commodity = "".to_owned();
-            if posting.equality {
-                commodity += "= ";
-            }
+            commodity += &format!("{} ", posting.equality.clone().unwrap_or("".to_owned()));
             commodity += &posting.commodity.clone().unwrap_or("".to_owned());
             formatted += &format!("{: >5}", commodity);
 
@@ -63,7 +61,7 @@ mod test {
             format_line(&LedgerLine::Posting(PostingLine {
                 account: account.clone(),
                 commodity: None,
-                equality: false,
+                equality: None,
                 amount: None,
                 comment: None
             }))
@@ -74,7 +72,7 @@ mod test {
             format_line(&LedgerLine::Posting(PostingLine {
                 account: account.clone(),
                 commodity: Some("JPY".to_owned()),
-                equality: false,
+                equality: None,
                 amount: None,
                 comment: None
             }))
@@ -84,7 +82,7 @@ mod test {
             format_line(&LedgerLine::Posting(PostingLine {
                 account: account.clone(),
                 commodity: Some("JPY".to_owned()),
-                equality: false,
+                equality: None,
                 amount: Some("10000".to_owned()),
                 comment: None
             }))
@@ -94,7 +92,7 @@ mod test {
             format_line(&LedgerLine::Posting(PostingLine {
                 account: account.clone(),
                 commodity: Some("JPY".to_owned()),
-                equality: true,
+                equality: Some("=".to_owned()),
                 amount: Some("10000".to_owned()),
                 comment: None
             }))
@@ -104,7 +102,17 @@ mod test {
             format_line(&LedgerLine::Posting(PostingLine {
                 account: account.clone(),
                 commodity: Some("JPY".to_owned()),
-                equality: true,
+                equality: Some("=".to_owned()),
+                amount: Some("10000".to_owned()),
+                comment: Some(" foo".to_owned())
+            }))
+        );
+        assert_eq!(
+            "  asset:foobar                                                        ==* JPY     10000 ; foo".to_owned(),
+            format_line(&LedgerLine::Posting(PostingLine {
+                account: account.clone(),
+                commodity: Some("JPY".to_owned()),
+                equality: Some("=".to_owned()),
                 amount: Some("10000".to_owned()),
                 comment: Some(" foo".to_owned())
             }))

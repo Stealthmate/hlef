@@ -2,7 +2,7 @@ use crate::common::{LedgerLine, PostingLine};
 
 const COMMENT_REGEX: &str = r"^;(.*)$";
 const TRANSACTION_HEAD_REGEX: &str = r"^[0-9]{4}-[0-9]{2}-[0-9]{2}.*$";
-const POSTING_REGEX: &str = r"^   *([^ ]+)(  +(\= +)?([^ ]+)? +([^ ;]+))? *(;(.*))?$";
+const POSTING_REGEX: &str = r"^   *([^ ]+)(  +((\=|\=\=\*) +)?([^ ]+)? +([^ ;]+))? *(;(.*))?$";
 const POSTING_COMMENT_REGEX: &str = r"^   *;(.*)$";
 
 #[derive(Debug, PartialEq, Eq)]
@@ -53,10 +53,10 @@ fn parse_line_posting(line: &str) -> Result<LedgerLine, ParseError> {
 
     Ok(LedgerLine::Posting(PostingLine {
         account: results.get(1).unwrap().as_str().to_owned(),
-        equality: results.get(3).is_some(),
-        commodity: results.get(4).map(|x| x.as_str().to_owned()),
-        amount: results.get(5).map(|x| x.as_str().to_owned()),
-        comment: results.get(7).map(|x| x.as_str().to_owned()),
+        equality: results.get(4).map(|x| x.as_str().to_owned()),
+        commodity: results.get(5).map(|x| x.as_str().to_owned()),
+        amount: results.get(6).map(|x| x.as_str().to_owned()),
+        comment: results.get(8).map(|x| x.as_str().to_owned()),
     }))
 }
 fn parse_line_posting_comment(line: &str) -> Result<LedgerLine, ParseError> {
@@ -140,7 +140,7 @@ mod test {
                 Ok(LedgerLine::Posting(PostingLine {
                     account: "asset:foobar".to_owned(),
                     commodity: Some("JPY".to_owned()),
-                    equality: false,
+                    equality: None,
                     amount: Some("0".to_owned()),
                     comment: None
                 })),
@@ -156,7 +156,7 @@ mod test {
                 Ok(LedgerLine::Posting(PostingLine {
                     account: "asset:foobar".to_owned(),
                     commodity: Some("JPY".to_owned()),
-                    equality: true,
+                    equality: Some("=".to_owned()),
                     amount: Some("0".to_owned()),
                     comment: Some("example".to_owned())
                 })),

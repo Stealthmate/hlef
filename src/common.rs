@@ -2,7 +2,7 @@
 pub struct PostingLine {
     pub account: String,
     pub commodity: Option<String>,
-    pub equality: bool,
+    pub equality: Option<String>,
     pub amount: Option<String>,
     pub comment: Option<String>,
 }
