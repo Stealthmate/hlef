@@ -1,8 +1,10 @@
-use crate::common::{LedgerLine, PostingLine};
+use crate::common::{LedgerLine, PostingAmount, PostingLine};
 
 const COMMENT_REGEX: &str = r"^;(.*)$";
 const TRANSACTION_HEAD_REGEX: &str = r"^[0-9]{4}-[0-9]{2}-[0-9]{2}.*$";
-const POSTING_REGEX: &str = r"^   *([^ ]+)(  +((\=|\=\=\*) +)?([^ ]+)? +([^ ;]+))? *(;(.*))?$";
+const POSTING_ACCOUNT_REGEX: &str = r"^   *([^ ]+) *";
+const POSTING_ASSERTION_REGEX: &str = r"^([=*]+) *";
+const POSTING_AMOUNT_REGEX: &str = r"^([^0-9 .,]+)? *([0-9,.]+) *";
 const POSTING_COMMENT_REGEX: &str = r"^   *;(.*)$";
 
 #[derive(Debug, PartialEq, Eq)]
@@ -42,21 +44,64 @@ fn parse_line_transaction_head(line: &str) -> Result<LedgerLine, ParseError> {
         results.get(0).unwrap().as_str().trim().to_owned(),
     ))
 }
+
+fn parse_posting_assertion(line: &mut String) -> Result<Option<String>, ParseError> {
+    Ok(regex::Regex::new(POSTING_ASSERTION_REGEX)
+        .unwrap()
+        .captures(&line.clone())
+        .map(|results| {
+            *line = line[results.get(0).unwrap().len()..].to_string();
+            results.get(1).unwrap().as_str().to_owned()
+        }))
+}
+
+fn parse_posting_amount(line: &mut String) -> Result<Option<PostingAmount>, ParseError> {
+    Ok(regex::Regex::new(POSTING_AMOUNT_REGEX)
+        .unwrap()
+        .captures(&line.clone())
+        .map(|results| {
+            *line = line[results.get(0).unwrap().len()..].to_string();
+            PostingAmount {
+                commodity: results.get(1).map(|x| x.as_str().to_owned()),
+                amount: results.get(2).unwrap().as_str().to_owned(),
+            }
+        }))
+}
+
+fn parse_comment(line: &mut String) -> Result<Option<String>, ParseError> {
+    Ok(regex::Regex::new(COMMENT_REGEX)
+        .unwrap()
+        .captures(&line.clone())
+        .map(|results| {
+            *line = line[results.get(0).unwrap().len()..].to_string();
+            results.get(1).unwrap().as_str().to_owned()
+        }))
+}
+
 fn parse_line_posting(line: &str) -> Result<LedgerLine, ParseError> {
-    let re = regex::Regex::new(POSTING_REGEX).unwrap();
-    let Some(results) = re.captures(line) else {
+    let mut parsed_line = line.to_string();
+    let re = regex::Regex::new(POSTING_ACCOUNT_REGEX).unwrap();
+    let Some(results) = re.captures(&parsed_line) else {
         return Err(ParseError::Fail(
-            line.to_owned(),
+            parsed_line,
             "Could not parse posting".to_owned(),
         ));
     };
 
+    let account = results.get(1).unwrap().as_str().to_owned();
+    parsed_line = parsed_line[results.get(0).unwrap().len()..].to_string();
+
+    let left_amount = parse_posting_amount(&mut parsed_line)?;
+    let assertion = parse_posting_assertion(&mut parsed_line)?;
+    let right_amount = parse_posting_amount(&mut parsed_line)?;
+    let comment = parse_comment(&mut parsed_line)?;
+
     Ok(LedgerLine::Posting(PostingLine {
-        account: results.get(1).unwrap().as_str().to_owned(),
-        equality: results.get(4).map(|x| x.as_str().to_owned()),
-        commodity: results.get(5).map(|x| x.as_str().to_owned()),
-        amount: results.get(6).map(|x| x.as_str().to_owned()),
-        comment: results.get(8).map(|x| x.as_str().to_owned()),
+        account,
+        left_amount,
+        assertion,
+        right_amount,
+        comment,
     }))
 }
 fn parse_line_posting_comment(line: &str) -> Result<LedgerLine, ParseError> {
@@ -139,9 +184,12 @@ mod test {
             assert_eq!(
                 Ok(LedgerLine::Posting(PostingLine {
                     account: "asset:foobar".to_owned(),
-                    commodity: Some("JPY".to_owned()),
-                    equality: None,
-                    amount: Some("0".to_owned()),
+                    left_amount: Some(PostingAmount {
+                        commodity: Some("JPY".to_owned()),
+                        amount: "0".to_owned()
+                    }),
+                    assertion: None,
+                    right_amount: None,
                     comment: None
                 })),
                 parse_line_posting(line)
@@ -149,15 +197,21 @@ mod test {
         }
 
         for line in [
-            "  asset:foobar  = JPY 0;example",
-            "     asset:foobar  =  JPY        0      ;example",
+            "  asset:foobar  JPY 123 ==* JPY 0;example",
+            "     asset:foobar  JPY 123 ==*  JPY        0      ;example",
         ] {
             assert_eq!(
                 Ok(LedgerLine::Posting(PostingLine {
                     account: "asset:foobar".to_owned(),
-                    commodity: Some("JPY".to_owned()),
-                    equality: Some("=".to_owned()),
-                    amount: Some("0".to_owned()),
+                    left_amount: Some(PostingAmount {
+                        commodity: Some("JPY".to_owned()),
+                        amount: "123".to_owned()
+                    }),
+                    assertion: Some("==*".to_owned()),
+                    right_amount: Some(PostingAmount {
+                        commodity: Some("JPY".to_owned()),
+                        amount: "0".to_owned()
+                    }),
                     comment: Some("example".to_owned())
                 })),
                 parse_line_posting(line)

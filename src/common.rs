@@ -1,9 +1,15 @@
 #[derive(PartialEq, Eq, Debug, Clone)]
+pub struct PostingAmount {
+    pub commodity: Option<String>,
+    pub amount: String,
+}
+
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub struct PostingLine {
     pub account: String,
-    pub commodity: Option<String>,
-    pub equality: Option<String>,
-    pub amount: Option<String>,
+    pub left_amount: Option<PostingAmount>,
+    pub assertion: Option<String>,
+    pub right_amount: Option<PostingAmount>,
     pub comment: Option<String>,
 }
 
