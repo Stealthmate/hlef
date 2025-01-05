@@ -123,8 +123,8 @@ pub fn parse_line(line: &str) -> Result<LedgerLine, ParseError> {
         parse_line_empty,
         parse_line_comment,
         parse_line_transaction_head,
-        parse_line_posting,
         parse_line_posting_comment,
+        parse_line_posting,
     ] {
         if let Ok(x) = f(line) {
             return Ok(x);
