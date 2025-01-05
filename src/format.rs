@@ -126,14 +126,14 @@ mod test {
             }))
         );
         assert_eq!(
-            "  asset:foobar                                                                                = JPY       10000".to_owned(),
+            "  asset:foobar                                                                                = JPY      -10000".to_owned(),
             format_line(&LedgerLine::Posting(PostingLine {
                 account: account.clone(),
                 left_amount: None,
                 assertion: Some("=".to_string()),
                 right_amount: Some(PostingAmount {
                     commodity: Some("JPY".to_string()),
-                    amount: "10000".to_string()
+                    amount: "-10000".to_string()
                 }),
                 comment: None
             }))

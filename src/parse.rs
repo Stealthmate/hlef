@@ -4,7 +4,7 @@ const COMMENT_REGEX: &str = r"^;(.*)$";
 const TRANSACTION_HEAD_REGEX: &str = r"^[0-9]{4}-[0-9]{2}-[0-9]{2}.*$";
 const POSTING_ACCOUNT_REGEX: &str = r"^   *([^ ]+) *";
 const POSTING_ASSERTION_REGEX: &str = r"^([=*]+) *";
-const POSTING_AMOUNT_REGEX: &str = r"^([^0-9 .,]+)? *([0-9,.]+) *";
+const POSTING_AMOUNT_REGEX: &str = r"^([^0-9 .,]+)? *([\-0-9,.]+) *";
 const POSTING_COMMENT_REGEX: &str = r"^   *;(.*)$";
 
 #[derive(Debug, PartialEq, Eq)]
@@ -197,15 +197,15 @@ mod test {
         }
 
         for line in [
-            "  asset:foobar  JPY 123 ==* JPY 0;example",
-            "     asset:foobar  JPY 123 ==*  JPY        0      ;example",
+            "  asset:foobar  JPY -123 ==* JPY 0;example",
+            "     asset:foobar  JPY -123 ==*  JPY        0      ;example",
         ] {
             assert_eq!(
                 Ok(LedgerLine::Posting(PostingLine {
                     account: "asset:foobar".to_owned(),
                     left_amount: Some(PostingAmount {
                         commodity: Some("JPY".to_owned()),
-                        amount: "123".to_owned()
+                        amount: "-123".to_owned()
                     }),
                     assertion: Some("==*".to_owned()),
                     right_amount: Some(PostingAmount {
