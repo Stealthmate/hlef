@@ -22,3 +22,27 @@ pub enum LedgerLine {
     PostingComment(String),
     Other(String),
 }
+
+#[derive(Clone, serde::Deserialize, Debug)]
+pub struct Config {
+    #[serde(default = "default_amount_length")]
+    pub amount_length: usize,
+    #[serde(default = "default_account_max_length")]
+    pub account_max_length: usize,
+}
+
+pub fn default_amount_length() -> usize {
+    15
+}
+pub fn default_account_max_length() -> usize {
+    70
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Config {
+            amount_length: default_amount_length(),
+            account_max_length: default_account_max_length(),
+        }
+    }
+}

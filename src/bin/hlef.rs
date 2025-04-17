@@ -6,12 +6,16 @@ use clap::Parser;
 struct Args {
     #[clap(num_args = 1..)]
     pub files: Vec<String>,
+    #[clap(long)]
+    pub config: Option<String>,
 }
 
 fn main() {
     use rayon::prelude::*;
 
     let args = Args::parse();
-
-    args.files.par_iter().for_each(|x| hlef::format_file(x));
+    let config = hlef::load_config(args.config);
+    args.files
+        .par_iter()
+        .for_each(|x| hlef::format_file(config.clone(), x));
 }
