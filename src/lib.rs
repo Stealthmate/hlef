@@ -41,6 +41,7 @@ pub fn format_file(config: common::Config, filepath: &str) {
         let output_fp = format!("{}.hlef", filepath);
         let mut file = fs::File::options()
             .write(true)
+            .truncate(true)
             .create(true)
             .open(&output_fp)
             .unwrap_or_else(|e| panic!("Could not open file: {output_fp}. {e}"));

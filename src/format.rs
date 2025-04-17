@@ -9,7 +9,7 @@ impl Formatter {
         Formatter { config }
     }
 
-    pub fn subtract(self: &Self, a: usize, b: usize) -> usize {
+    pub fn subtract(&self, a: usize, b: usize) -> usize {
         let x = (a as isize) - (b as isize);
         if x < 1 {
             panic!("Not enough space: {a}, {b}")
@@ -17,7 +17,7 @@ impl Formatter {
         x as usize
     }
 
-    pub fn format_posting_account(self: &Self, account: &str) -> String {
+    pub fn format_posting_account(&self, account: &str) -> String {
         let mut out = String::new();
         out += account;
         out += &" ".repeat(self.subtract(self.config.account_max_length, out.len()));
@@ -25,7 +25,7 @@ impl Formatter {
         out
     }
 
-    pub fn format_posting_amount(self: &Self, pa: &PostingAmount) -> String {
+    pub fn format_posting_amount(&self, pa: &PostingAmount) -> String {
         let mut out = "".to_string();
         out += pa.commodity.as_ref().map_or("", |x| x.as_str());
 
@@ -42,7 +42,7 @@ impl Formatter {
         out
     }
 
-    pub fn format_posting_line(self: &Self, posting: &PostingLine) -> String {
+    pub fn format_posting_line(&self, posting: &PostingLine) -> String {
         let mut formatted = "  ".to_owned();
         formatted += &self.format_posting_account(&posting.account);
         formatted += "  ";
@@ -66,7 +66,7 @@ impl Formatter {
         }
         formatted.trim_end().to_owned()
     }
-    pub fn format_line(self: &Self, line: &LedgerLine) -> String {
+    pub fn format_line(&self, line: &LedgerLine) -> String {
         match line {
             LedgerLine::Empty => "".to_owned(),
             LedgerLine::Comment(x) => format!(";{x}"),
