@@ -28,7 +28,6 @@ pub fn format_file(config: common::Config, filepath: &str) {
                 Ok(x) => match parse::parse_line(&x) {
                     Ok(ll) => {
                         let formatted = formatter.format_line(&ll);
-                        println!("{}", formatted);
                         buffer.push(formatted);
                     }
                     Err(e) => panic!("{e:#?}"),
