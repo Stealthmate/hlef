@@ -2,10 +2,9 @@ use crate::common::{LedgerLine, PostingAmount, PostingLine};
 
 const COMMENT_REGEX: &str = r"^;(.*)$";
 const TRANSACTION_HEAD_REGEX: &str = r"^[0-9]{4}-[0-9]{2}-[0-9]{2}.*$";
-const POSTING_ACCOUNT_REGEX: &str = r"^   *([^ ]+) *";
 const POSTING_ASSERTION_REGEX: &str = r"^([=*]+) *";
 const WHITESPACE_REGEX: &str = r"^ *";
-const COMMODITY_REGEX: &str = r"^[^0-9 .,;]+";
+const COMMODITY_REGEX: &str = r"^[^=.,;*][^0-9 .,;]*";
 const AMOUNT_REGEX: &str = r"^[\-0-9,.]+";
 const POSTING_COMMENT_REGEX: &str = r"^   *;(.*)$";
 
@@ -282,6 +281,20 @@ mod test {
 
     #[test]
     fn test_it_parses_posting() {
+        assert_eq!(
+            Ok(LedgerLine::Posting(PostingLine {
+                account: "expense:foo".to_owned(),
+                left_amount: None,
+                assertion: Some("=".to_owned()),
+                right_amount: Some(PostingAmount {
+                    commodity: Some("JPY".to_owned()),
+                    amount: "0".to_owned()
+                }),
+                comment: None
+            })),
+            parse_line_posting("  expense:foo  = JPY 0")
+        );
+
         for line in [
             "  asset:foobar  JPY 0",
             "     asset:foobar    JPY        0      ",
